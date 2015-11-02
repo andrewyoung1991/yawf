@@ -5,5 +5,7 @@ python:
   - "3.4"
   - "3.5"
 
-install: "pip install -r requirements/tests.txt"
+install: 
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.3 ]]; then pip install asyncio; fi
+    - "pip install -r requirements/tests.txt"
 script: "py.test tests/ --cov=yawf"

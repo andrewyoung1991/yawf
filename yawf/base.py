@@ -1,8 +1,15 @@
-import abc
+try:
+    from abc import ABC
+except ImportError:  # pragma: no cover
+    # python 3.3
+    from abc import ABCMeta
+    class ABC(metaclass=ABCMeta):
+        """a simple ABC that has ABCMeta as its metaclass"""
+
 import asyncio
 
 
-class BaseHandler(abc.ABC):
+class BaseHandler(ABC):
     """ an abstract base class for handling websocket connections
     """
     __slots__ = ("websocket",)
