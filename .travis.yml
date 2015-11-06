@@ -8,4 +8,5 @@ python:
 install: 
     - if [[ $TRAVIS_PYTHON_VERSION == 3.3 ]]; then pip install asyncio; fi
     - "pip install -r requirements/tests.txt"
-script: "py.test tests/ --cov=yawf"
+
+script: "py.test --cov=yawf"

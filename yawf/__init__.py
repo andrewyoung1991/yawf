@@ -12,7 +12,7 @@ from .conf import Settings, settings
 from .utils import singleton
 
 
-__all__ = ("get_app", "App", "Router", "BaseHandler", "settings", "Settings")
+__all__ = ("App", "Router", "BaseHandler", "settings", "Settings")
 __version__ = "0.0.1"
 
 
@@ -102,9 +102,7 @@ class App:
                 "Press <Ctrl-c> to stop...".format(host, port))
             loop.run_until_complete(server)
             loop.run_forever()
+        except KeyboardInterrupt:  # pragma: no cover
+            print("OKAY BYE!")
         finally:
             loop.close()
-
-
-def get_app(name=None):
-    return App(name=name)

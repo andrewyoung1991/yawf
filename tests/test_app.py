@@ -17,9 +17,9 @@ def test_application(evloop):
     @app.route("/")
     class Echo(BaseHandler):
         @asyncio.coroutine
-        def handle(self, *args, **kwargs):
-            from_client = yield from self.websocket.recv()
-            yield from self.websocket.send(from_client)
+        def handle(self, ws, *args, **kwargs):
+            from_client = yield from ws.recv()
+            yield from ws.send(from_client)
 
     _, handler = app.router.resolve("/")
 
@@ -52,9 +52,9 @@ def test_application_as_handler(evloop):
     @app.route("/")
     class Echo(BaseHandler):
         @asyncio.coroutine
-        def handle(self, *args, **kwargs):
-            from_client = yield from self.websocket.recv()
-            yield from self.websocket.send(from_client)
+        def handle(self, ws, *args, **kwargs):
+            from_client = yield from ws.recv()
+            yield from ws.send(from_client)
 
     handler = app.as_handler(loop=evloop)
 
@@ -92,9 +92,9 @@ def test_application_as_handler_unknown_route(evloop):
     @app.route("/")
     class Echo(BaseHandler):
         @asyncio.coroutine
-        def handle(self, *args, **kwargs):
-            from_client = yield from self.websocket.recv()
-            yield from self.websocket.send(from_client)
+        def handle(self, ws, *args, **kwargs):
+            from_client = yield from ws.recv()
+            yield from ws.send(from_client)
 
     handler = app.as_handler(loop=evloop)
 

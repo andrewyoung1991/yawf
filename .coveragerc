@@ -1,0 +1,14 @@
+[paths]
+source = yawf/
+
+[run]
+omit =
+    env/*
+    tests/*
+    examples/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __str__
+    def __repr__

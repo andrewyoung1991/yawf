@@ -1,14 +1,12 @@
 import asyncio
 
-import websockets
-
-from yawf import App, Handler
+from yawf import App, BaseHandler
 
 
 app = App(name="test")
 
 @app.route("/echo")
-class Echo(Handler):
+class Echo(BaseHandler):
     @asyncio.coroutine
     def handle(self, *args, **kwargs):
         app.logger.debug("recieved a websocket connection")
@@ -21,6 +19,7 @@ class Echo(Handler):
             app.logger.debug("recieved `{}` from client".format(value))
             yield from self.websocket.send(value)
             app.logger.debug("sent value back to client")
+        app.logger.debug("closing the websocket now.")
 
 
 app.run("localhost", 8765, debug=True)

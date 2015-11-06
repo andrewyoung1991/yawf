@@ -25,7 +25,8 @@ def test_stupid_handler(evloop):
 
     class Nothing(BaseHandler):
         @asyncio.coroutine
-        def handle(self, *args, **kwargs):
+        def handle(self, ws, *args, **kwargs):
+            assert ws in self.websockets
             yield from asyncio.sleep(0.1)
 
     handler = Nothing()
@@ -33,7 +34,5 @@ def test_stupid_handler(evloop):
     @asyncio.coroutine
     def run_handler():
         yield from handler("cool")
-        assert handler.websocket == "cool"
-        assert str(handler) == "<Nothing :: cool>"
 
     evloop.run_until_complete(run_handler())

@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+    <head>
+        <title>python websocket chatroom server</title>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    </head>
+    <body>
+        <div class="container-fluid">
+            <nav class="navbar navbar-default">
+                <div class="container">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="#">CHAT</a>
+                    </div>
+                </div>
+            </nav>
+            <section class="container">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h2>YAWF (yeah, a websocket framework...)</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p>in this example, we send a string message to through a websocket with which the server echo's back to all the connected clients.</p>
+                    </div>
+                    <ul id="chatbox" class="list-group"></ul>
+                </div>
+            </section>
+            <section class="container">
+                <div class="well">
+                    <form id="message-form" onsubmit="return sendMessage();">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon1">@</span>
+                            <input type="text" class="form-control" placeholder="Your message here...">
+                            <span class="input-group-btn">
+                                <input type="submit" class="btn btn-primary" type="button" value="Submit">
+                            </span>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+        <script>
+            var ws = new WebSocket("ws://localhost:8765/chatroom");
+            ws.onmessage = function(event) {
+                var chatbox = document.getElementById("chatbox"), elem, elemText;
+                elem = document.createElement("li");
+                elem.className = "list-group-item";
+                elemText = document.createTextNode(event.data);
+                elem.appendChild(elemText);
+                chatbox.appendChild(elem);
+            };
+            ws.onopen = function(event) {
+                console.log(event);
+                console.log("websocket is open!");
+            };
+
+            document.sendMessage = function() {
+                var messageForm = document.forms["message-form"], message;
+                message = messageForm.querySelector("input.form-control");
+                ws.send(message.value);
+                message.value = "";
+
+                return false;
+            };
+        </script>
+    </body>
+</html>

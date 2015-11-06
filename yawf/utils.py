@@ -13,12 +13,6 @@ class Borg:
         return str(self.__dict__)
     __repr__ = __str__
 
-    def __getitem__(self, item):
-        return super().__getattribute__(item)
-
-    def __setitem__(self, item, value):
-        return super().__setattr__(item, value)
-
 
 class Frozen:
     """
@@ -45,7 +39,7 @@ class Frozen:
     __setitem__ = __setattr__
 
 
-def singleton(*, update=False):
+def singleton():
     def inner(klass):
         @ft.wraps(klass)
         def wrapper(*args, **kwargs):
@@ -53,8 +47,16 @@ def singleton(*, update=False):
             if instance is None:
                 instance = klass(*args, **kwargs)
                 setattr(klass, "_instance", instance)
-            if update is True:
-                instance.__dict__.update(kwargs)
             return instance
         return wrapper
     return inner
+
+
+def lazyprop(fn):
+    attr_name = '_lazy_' + fn.__name__
+    @property
+    def _lazyprop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+    return _lazyprop
