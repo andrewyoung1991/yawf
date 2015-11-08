@@ -13,15 +13,19 @@ yeah, a websocket framework...
 .. image:: https://coveralls.io/repos/andrewyoung1991/yawf/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/andrewyoung1991/yawf?branch=master
 
+.. image:: https://api.codacy.com/project/badge/grade/821539edd9244e32b1a5e899c6a1f639
+    :target: https://www.codacy.com/app/andrewyoung1991/yawf
+
 
 YAWF is a reaction to a few modern python web frameworks reactions to websockets. While trying to implement a decent websocket server is tricky, huge advances in async python (i.e. asyncio) are begining to alleviate the pains. No longer will you have to import a coroutine library monkey patch all the things.
 
+==========
 Quickstart
 ==========
 
 YAWF attempts to be the Flask of websocket application servers, which is cool becuase, well, the web needs websockets now, and the web needs python, and python web developers know how to hook things up with Flask pretty quickly, so that means YAWF should be pretty great.
 
-::
+.. code-block:: python
 
     # /app.py
     import asyncio
@@ -42,17 +46,18 @@ YAWF attempts to be the Flask of websocket application servers, which is cool be
     if __name__ == "__main__":
         ws_app.run()
 
-    # bash prompt
+.. code-block:: bash
+
     $ python app.py
 
 
 to configure your project just import the global Settings object:
 
-::
+.. code-block:: python
 
     # /settings.py
     from yawf import Settings
-    
+
     s = Settings()
     s.secret = "i love the 80's was a good show"
 
@@ -63,7 +68,7 @@ to configure your project just import the global Settings object:
 
 but don't you dare try to change your settings a runtime!
 
-::
+.. code-block:: python
 
     # /app.py
     from yawf.conf import settings
@@ -81,7 +86,8 @@ but don't you dare try to change your settings a runtime!
     from yawf.conf import make_setting
 
     make_setting("secret", "okay i guess i love the 80's is cooler")
-    
+  
+=========
 Structure
 =========
 

@@ -21,7 +21,7 @@ __version__ = "0.0.1"
 class App:
     """ App is a singleton class, meaning one app per application... duh!
     """
-    def __init__(self, *, name, debug=False):
+    def __init__(self, *, name=None, debug=False):
         self.name = name
         self.router = Router()
         self.logger = logging.getLogger(self.name)

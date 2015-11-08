@@ -38,8 +38,7 @@ def read(*, filename):
     return contents
 
 install = [
-    "jws==0.1.3",
-    "python-jwt==1.0.3",
+    "PyJWT==1.4.0",
     "websockets==2.6"
     ]
 
@@ -47,11 +46,11 @@ if pyv == (3, 3):
     install.append("asyncio")
 
 tests = install + [
-    "py==1.4.30"
-    "coverage==4.0.1"
-    "pytest==2.8.2"
-    "pytest-cov==2.2.0"
-    "pytest-cover==3.0.0"
+    "py==1.4.30",
+    "coverage==4.0.1",
+    "pytest==2.8.2",
+    "pytest-cov==2.2.0",
+    "pytest-cover==3.0.0",
     "pytest-coverage==0.0"
     ]
 
@@ -60,11 +59,16 @@ setup(
     version=__version__,
     author="Andrew Young",
     author_email="ayoung@thewulf.org",
-    licesnse="MIT",
-    packages=find_packages("yawf", exclude=["tests", "examples"]),
+    license="MIT",
+    packages=find_packages(exclude=["tests", "examples"]),
     description="yeah, a websocket framework... for python.",
-    long_description=read("README.rst"),
+    long_description=read(filename="README.rst"),
     install_requires=install,
     tests_require=tests,
-    cmdclass={"test": PyTest}
+    cmdclass={"test": PyTest},
+    entry_points={
+        "console_scripts": [
+            "yawf = yawf.commands.yawf:call_command"
+            ]
+        }
 )
