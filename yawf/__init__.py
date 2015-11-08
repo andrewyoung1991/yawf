@@ -85,16 +85,13 @@ class App:
         """
         loop = loop if loop is not None else asyncio.get_event_loop()
 
-        def get_querydict(path):
-            parsed = urlparse(path)
-            return parse_qs(parsed.query)
-
         @asyncio.coroutine
         def router(ws, path):
             _msg = "{0} -> is open? -> {1}".format(ws, ws.open)
+            path = urlparse(path)
             self.logger.debug(_msg)
             try:
-                kwargs, handler = self.router.resolve(path)
+                kwargs, handler = self.router.resolve(path.path)
             except RouterResolutionError as err:
                 _msg = "{0} -> {1}".format(ws, err)
                 self.logger.debug(_msg)
@@ -107,7 +104,7 @@ class App:
             _msg = "{} -> launching handler".format(ws)
             self.logger.debug(_msg)
             kwargs["LOOP"] = loop
-            kwargs["QUERY"] = get_querydict(path)
+            kwargs["QUERY"] = parse_qs(path.query)
             yield from handler(ws, **kwargs)
             yield from ws.close()
             _msg = "{} -> closed".format(ws)
