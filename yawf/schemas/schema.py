@@ -4,14 +4,13 @@ about your websocket api.
 """
 import json
 import datetime
-from collections import OrderedDict
 
 from yawf.utils import Frozen
 
 from . import fields
 
 
-class FieldsDict(OrderedDict):
+class FieldsDict(dict):
     def __init__(self, *, fields):
         super().__init__(**fields)
         self.fields_list = list(self.keys())
