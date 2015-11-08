@@ -17,10 +17,18 @@ class BaseHandler(ABC):
     """
     AUTH = auth.JWTTokenAuth()
 
+    send_schema = None
+    recv_schema = None
+
     __slots__ = ("websockets",)
 
     def __init__(self):
         self.websockets = set()  # initialize websockets variable
+
+    def __str__(self):
+        return "<{0} :: Clients={1}>".format(
+            self.__class__.__name__, len(self.websockets))
+    __repr__ = __str__
 
     def add_websocket(self, websocket):
         """ add a websocket to the set of connected clients
@@ -36,17 +44,30 @@ class BaseHandler(ABC):
             pass
 
     @asyncio.coroutine
-    def __call__(self, ws, *args, **kwargs):
+    def __call__(self, ws, **kwargs):
         self.add_websocket(ws)  # add this websocket to the set of connections
-        yield from self.handle(ws, *args, **kwargs)
+        yield from self.handle(ws, **kwargs)
         self.remove_websocket(ws)  # remove this websocket form the set
         return ws
 
     @asyncio.coroutine
-    def handle(self, ws, *args, **kwargs):
+    def handle(self, ws, **kwargs):
         raise NotImplementedError
 
-    def __str__(self):
-        return "<{0} :: Clients={1}>".format(
-            self.__class__.__name__, len(self.websockets))
-    __repr__ = __str__
+    @asyncio.coroutine
+    def recv_json(self, ws):
+        recieved = yield from ws.recv()
+        return self.recv_schema.loads(recieved)
+
+    @asyncio.coroutine
+    def send_json(self, ws, message):
+        if isinstance(message, self.send_schema):
+            message = self.send_schema.dumps(message)
+        else:
+            message = self.send_schema(**message)
+            message = self.send_schema.dumps(message)
+        yield from ws.send(message)
+
+    @classmethod
+    def as_handler(cls):
+        return cls().__call__

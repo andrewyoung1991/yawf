@@ -41,7 +41,7 @@ class Router:
         """
         def wrap(handler):
             if issubclass(handler, BaseHandler):
-                handler = handler()
+                handler = handler.as_handler()
             cleaned = self.clean_path(path_desc)
             regex = self._make_regex(cleaned)
             self.routes[cleaned] = regex, handler

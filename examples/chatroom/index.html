@@ -13,51 +13,69 @@
                     </div>
                 </div>
             </nav>
-            <section class="container">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h2>YAWF (yeah, a websocket framework...)</h2>
-                    </div>
-                    <div class="panel-body">
-                        <p>in this example, we send a string message to through a websocket with which the server echo's back to all the connected clients.</p>
-                    </div>
-                    <ul id="chatbox" class="list-group"></ul>
-                </div>
-            </section>
-            <section class="container">
-                <div class="well">
-                    <form id="message-form" onsubmit="return sendMessage();">
-                        <div class="input-group">
-                            <span class="input-group-addon" id="basic-addon1">@</span>
-                            <input type="text" class="form-control" placeholder="Your message here...">
-                            <span class="input-group-btn">
-                                <input type="submit" class="btn btn-primary" type="button" value="Submit">
-                            </span>
+            <main class="container">
+                <section>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h2>YAWF (yeah, a websocket framework...)</h2>
                         </div>
-                    </form>
-                </div>
-            </section>
+                        <div class="panel-body">
+                            <p>in this example, we send a string message to through a websocket with which the server echo's back to all the connected clients.</p>
+                        </div>
+                        <ul id="chatbox" class="list-group"></ul>
+                    </div>
+                </section>
+                <section>
+                    <div class="well">
+                        <form id="message-form" class="form-inline" onsubmit="return sendMessage();">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">@</span>
+                                    <input id="handle" type="text" class="form-control" placeholder="Your Handle" required>
+                                </div>
+                                <div class="input-group">
+                                    <input id="message" type="text" class="form-control" placeholder="Your message here..." required>
+                                    <span class="input-group-btn">
+                                        <input type="submit" class="btn btn-primary" type="button" value="Submit">
+                                    </span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </main>
         </div>
         <script>
             var ws = new WebSocket("ws://localhost:8765/chatroom");
             ws.onmessage = function(event) {
-                var chatbox = document.getElementById("chatbox"), elem, elemText;
+                var chatbox = document.getElementById("chatbox"), elem, message, data;
+                data = JSON.parse(event.data);
+                console.log("data", data);
+
                 elem = document.createElement("li");
                 elem.className = "list-group-item";
-                elemText = document.createTextNode(event.data);
-                elem.appendChild(elemText);
+
+                message = "<blockquote><p>" + data.message + "</p><footer>" + data.handle + "</footer></blockquote>";
+                elem.innerHTML = message;
+
                 chatbox.appendChild(elem);
             };
             ws.onopen = function(event) {
-                console.log(event);
                 console.log("websocket is open!");
             };
 
             document.sendMessage = function() {
-                var messageForm = document.forms["message-form"], message;
-                message = messageForm.querySelector("input.form-control");
-                ws.send(message.value);
+                var message, handle, data;
+                message = document.getElementById("message");
+                handle = document.getElementById("handle");
+                data = JSON.stringify({
+                    message: message.value,
+                    handle: handle.value
+                });
+                console.log("data", data);
+                ws.send(data);
                 message.value = "";
+                handle.setAttribute("readonly", true);
 
                 return false;
             };

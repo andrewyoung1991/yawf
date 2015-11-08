@@ -10,6 +10,10 @@ yeah, a websocket framework...
     :target: https://travis-ci.org/andrewyoung1991/yawf
 
 
+.. image:: https://coveralls.io/repos/andrewyoung1991/yawf/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/andrewyoung1991/yawf?branch=master
+
+
 YAWF is a reaction to a few modern python web frameworks reactions to websockets. While trying to implement a decent websocket server is tricky, huge advances in async python (i.e. asyncio) are begining to alleviate the pains. No longer will you have to import a coroutine library monkey patch all the things.
 
 Quickstart

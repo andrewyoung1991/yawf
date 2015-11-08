@@ -3,6 +3,7 @@ import asyncio
 from datetime import datetime
 import importlib
 import logging
+from urllib.parse import urlparse, parse_qs
 
 from websockets import serve
 
@@ -18,21 +19,44 @@ __version__ = "0.0.1"
 
 @singleton()
 class App:
-    """ App is a singleton class
+    """ App is a singleton class, meaning one app per application... duh!
     """
-    def __init__(self, *, name):
+    def __init__(self, *, name, debug=False):
         self.name = name
         self.router = Router()
         self.logger = logging.getLogger(self.name)
         self.settings = settings
+        self._debug = debug
 
     def __str__(self):
         return "<{0} :: {1}>".format(self.__class__.__name__, self.name)
     __repr__ = __str__
 
+    @property
+    def debug(self):
+        return self._debug
+
+    @debug.setter
+    def debug(self, value):
+        if value is True:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
+
+        self._debug = value
+        return self._debug
+
     def route(self, path):
-        """ proxy to the router allowing for the syntax:
-        app = App()
+        """
+        proxy to the router allowing for the syntax:
+        ::
+
+            app = App()
+
+            @app.route("/")
+            @asyncio.coroutine
+            def handler(ws, **kwargs):
+                pass
         """
         return self.router.route(path)
 
@@ -61,6 +85,10 @@ class App:
         """
         loop = loop if loop is not None else asyncio.get_event_loop()
 
+        def get_querydict(path):
+            parsed = urlparse(path)
+            return parse_qs(parsed.query)
+
         @asyncio.coroutine
         def router(ws, path):
             _msg = "{0} -> is open? -> {1}".format(ws, ws.open)
@@ -70,8 +98,7 @@ class App:
             except RouterResolutionError as err:
                 _msg = "{0} -> {1}".format(ws, err)
                 self.logger.debug(_msg)
-                yield from ws.send("{}".format(err))
-                yield from ws.close()
+                yield from ws.close(code=1011, reason="{}".format(err))
                 return
 
             _msg = "{0} -> resolved path -> {1}".format(path, handler)
@@ -79,7 +106,8 @@ class App:
 
             _msg = "{} -> launching handler".format(ws)
             self.logger.debug(_msg)
-            kwargs["loop"] = loop
+            kwargs["LOOP"] = loop
+            kwargs["QUERY"] = get_querydict(path)
             yield from handler(ws, **kwargs)
             yield from ws.close()
             _msg = "{} -> closed".format(ws)
@@ -88,21 +116,18 @@ class App:
         return router
 
     def run(self, host, port, *, debug=False, loop=None):
-        """
-        """
-        if debug:
-            logging.basicConfig(level=logging.DEBUG)
-            self.logger.setLevel(logging.DEBUG)
-        else:
-            self.logger.setLevel(logging.INFO)
+        self.debug = debug
         loop = loop if loop else asyncio.get_event_loop()
-        server = serve(self.as_handler(loop=loop, debug=debug), host, port)
+        server = serve(self.as_handler(loop=loop), host, port)
+
         try:
             print("Websocket server started -> {0}:{1}\n"
                 "Press <Ctrl-c> to stop...".format(host, port))
             loop.run_until_complete(server)
             loop.run_forever()
         except KeyboardInterrupt:  # pragma: no cover
-            print("OKAY BYE!")
+            print("Shutting down the server...")
         finally:
+            server.close()
             loop.close()
+            print("OKAY BYE!")
