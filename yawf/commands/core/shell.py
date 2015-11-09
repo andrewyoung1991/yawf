@@ -17,17 +17,14 @@ class Command(BaseCommand):
             )
 
     def handle(self, options):
-        from yawf import App
-        from yawf.conf import settings
-
         if options.plain:
-            return self.load_plain(app=App(), settings=settings)
+            return self.load_plain(app=self.app, settings=self.app.settings)
 
         interface = getattr(self, "load_{}".format(options.interface))
-        interface(app=App(), settings=settings)
+        interface(app=self.app, settings=self.app.settings)
 
     @staticmethod
-    def load_plain(app, settings):
+    def load_plain(app, settings):  # pragma: no cover
         import code
 
         new_vars = globals()
@@ -49,11 +46,11 @@ class Command(BaseCommand):
         shell.interact()
 
     @staticmethod
-    def load_bpython(app, settings):
+    def load_bpython(app, settings):  # pragma: no cover
         import bpython
         bpython.embed(locals_={"app": app, "settings": settings})
 
     @staticmethod
-    def load_ipython(app, settings):
+    def load_ipython(app, settings):  # pragma: no cover
         from IPython import start_ipython
         start_ipython(argv=[], user_ns={"app": app, "settings": settings})

@@ -7,11 +7,12 @@ import jwt
 from yawf import auth
 from yawf.conf import patch_settings
 
+
 @pytest.fixture
 def gen():
     return auth.JWTTokenAuth()
 
-@patch_settings(token_valid_duration=timedelta(minutes=2))
+@patch_settings(secret_key="okay", token_valid_duration=timedelta(minutes=2))
 def test_getting_token(gen):
     token = gen.create(username="fred", pk=9)
     assert token is not None
@@ -21,7 +22,7 @@ def test_getting_token(gen):
     assert validated["pk"] == 9
     assert datetime.now() < datetime.utcfromtimestamp(validated["exp"])
 
-@patch_settings(token_valid_duration=timedelta(minutes=-1))
+@patch_settings(secret_key="okay", token_valid_duration=timedelta(minutes=-1))
 def test_expired_token(gen):
     token = gen.create(username="fred", pk=9)
     assert token is not None
@@ -31,7 +32,7 @@ def test_expired_token(gen):
         gen.refresh(token)
         assert err == "Signature has expired"
 
-@patch_settings(token_valid_duration=timedelta(minutes=2))
+@patch_settings(secret_key="okay", token_valid_duration=timedelta(minutes=2))
 def test_refreshing_token(gen):
     token = gen.create(username="fred", pk=9)
     assert token is not None

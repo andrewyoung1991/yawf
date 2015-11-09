@@ -68,7 +68,7 @@ setup(
     cmdclass={"test": PyTest},
     entry_points={
         "console_scripts": [
-            "yawf = yawf.commands.yawf:call_command"
+            "yawf = yawf.commands:call_command"
             ]
         }
 )

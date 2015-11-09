@@ -38,6 +38,10 @@ class Frozen:
             " frozen object")
     __setitem__ = __setattr__
 
+    def __str__(self):
+        return self._instance.__str__()
+    __repr__ = __str__
+
 
 def singleton():
     def inner(klass):

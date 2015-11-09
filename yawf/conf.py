@@ -3,8 +3,6 @@
 .. module-author:: Andrew Young ayoung@thewulf.org
 """
 import functools as ft
-import os
-import binascii
 
 from . import utils
 
@@ -69,12 +67,8 @@ class Settings(utils.Borg):
             setattr(self, key, val)  # pragma: no cover
 
     def __str__(self):
-        return dict.__str__(self)
+        return dict.__str__(self.__dict__)
     __repr__ = __str__
-
-    @utils.lazyprop
-    def secret_key(self):
-        return binascii.hexlify(os.urandom(24)).decode()
 
     def get(self, key, default=None):
         return getattr(self, key, default)
