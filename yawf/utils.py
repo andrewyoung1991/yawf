@@ -64,3 +64,8 @@ def lazyprop(fn):
             setattr(self, attr_name, fn(self))
         return getattr(self, attr_name)
     return _lazyprop
+
+
+def get_app():
+    from yawf import App
+    return App()

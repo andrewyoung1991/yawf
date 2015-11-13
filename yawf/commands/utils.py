@@ -3,11 +3,8 @@ import sys
 import binascii
 import importlib
 import functools as ft
-import glob
+from yawf.compatibility import iglob, PY35
 from string import Template
-
-if sys.version_info.minor >= 5:
-    glob.iglob = ft.partial(glob.iglob, recursive=True)
 
 
 def generate_secret():  # pragma: no cover
@@ -27,6 +24,10 @@ def find_commands(commands_dir):  # pragma: no cover
 TEMPLATE_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "templates")
 
+if not PY35:
+    TEMPLATE_DIR = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+
 
 def load_template(path):
     with open(path) as template_file:
@@ -37,7 +38,7 @@ def load_template(path):
 def find_template(template_dir, template_name):
     _, ext = os.path.splitext(template_name)
     pattern = os.path.join(template_dir, "**", "*" + ext)
-    for path in glob.iglob(pattern):
+    for path in iglob(pattern):
         if path.endswith(template_name):
             return load_template(path)
     raise FileNotFoundError("{0} checked"

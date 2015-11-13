@@ -1,11 +1,11 @@
-""" this module is not interested in an implementation of the JSON schema drafts
+""" this module is not interested in an implementation of the yayson schema drafts
 instead it implements MessageSchema, which validate the transmission of messages
 about your websocket api.
 """
-import json
 import datetime
 
 from yawf.utils import Frozen
+from yawf.compatibility import yayson
 
 from . import fields
 
@@ -35,8 +35,6 @@ class MessageSchemaMeta(type):
 
 
 class MessageSchema(metaclass=MessageSchemaMeta):
-    """
-    """
     TYPE = "object"
 
     class UnknownFieldError(KeyError): pass
@@ -83,14 +81,9 @@ class MessageSchema(metaclass=MessageSchemaMeta):
     @classmethod
     def dumps(cls, message):
         serialized = message.dump_dict()
-        return json.dumps(serialized, default=cls._default)
+        return yayson.dumps(serialized)
 
     @classmethod
     def loads(cls, message):
-        loaded = json.loads(message)
+        loaded = yayson.loads(message)
         return cls(**loaded)
-
-    @staticmethod
-    def _default(obj):  # pragma: no cover
-        if isinstance(obj, datetime.datetime):
-            return obj.strftime("%Y-%m-%dT%H:%M:%S.%fZ")

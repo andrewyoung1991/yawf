@@ -6,7 +6,6 @@ except ImportError:  # pragma: no cover
     class ABC(metaclass=ABCMeta):
         """a simple ABC that has ABCMeta as its metaclass"""
 
-import json
 import asyncio
 
 from . import auth
@@ -53,20 +52,6 @@ class BaseHandler(ABC):
     @asyncio.coroutine
     def handle(self, ws, **kwargs):
         raise NotImplementedError
-
-    @asyncio.coroutine
-    def recv_json(self, ws):
-        recieved = yield from ws.recv()
-        return self.recv_schema.loads(recieved)
-
-    @asyncio.coroutine
-    def send_json(self, ws, message):
-        if isinstance(message, self.send_schema):
-            message = self.send_schema.dumps(message)
-        else:
-            message = self.send_schema(**message)
-            message = self.send_schema.dumps(message)
-        yield from ws.send(message)
 
     @classmethod
     def as_handler(cls):

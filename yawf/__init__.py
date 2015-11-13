@@ -11,6 +11,8 @@ from .router import Router, RouterResolutionError
 from .base import BaseHandler
 from .conf import Settings, settings
 from .utils import singleton
+from .middlewares.utils import collect_middleware
+from .protocol import WebSocket
 
 
 __all__ = ("App", "Router", "BaseHandler", "settings", "Settings")
@@ -112,10 +114,26 @@ class App:
 
         return router
 
+    @asyncio.coroutine
+    def run_middlewares(self, message, *, on="recv"):
+        middlewares = yield from collect_middleware()
+        routines = []
+        for middleware in middlewares:
+            handler = middleware.delegate(on)
+            if handler is not None:
+                routines.append(handler(message))
+
+        if len(routines):
+            results = yield from asyncio.gather(*routines)
+            message = results.pop()
+            assert message is not None, "A middleware returned an invalid message"
+
+        return message
+
     def run(self, host, port, *, debug=False, loop=None):
         self.debug = debug
         loop = loop if loop else asyncio.get_event_loop()
-        server = serve(self.as_handler(loop=loop), host, port)
+        server = serve(self.as_handler(loop=loop), host, port, klass=WebSocket)
 
         try:
             print("Websocket server started -> {0}:{1}\n"
