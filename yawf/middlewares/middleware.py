@@ -22,4 +22,4 @@ class Middleware:
         return hasattr(self, "on_recv") or hasattr(self, "on_send")
 
     def delegate(self, *, on):
-        return getattr(self, on, None)
+        return getattr(self, "on_{}".format(on), None)

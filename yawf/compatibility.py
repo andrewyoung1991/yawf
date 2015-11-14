@@ -4,12 +4,12 @@ from glob import iglob
 
 try:
     import ujson as json
-except ImportError:
+except ImportError:  # pragma: no cover
     import json as json
 
 try:
     from asyncio import ensure_future
-except ImportError:
+except ImportError:  # pragma: no cover
     from asyncio import async as ensure_future
 
 

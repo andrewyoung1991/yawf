@@ -24,10 +24,6 @@ def find_commands(commands_dir):  # pragma: no cover
 TEMPLATE_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "templates")
 
-if not PY35:
-    TEMPLATE_DIR = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
-
 
 def load_template(path):
     with open(path) as template_file:

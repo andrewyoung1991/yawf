@@ -11,11 +11,11 @@ class WebSocket(WebSocketServerProtocol):
         message = yield from super().recv()
         if message:
             app = get_app()
-            message = app.run_middlewares(message, on="recv")
+            message = yield from app.run_middlewares(message, on="recv")
             return message
 
     @asyncio.coroutine
-    def send(self, data):
+    def send(self, message):
         app = get_app()
-        data = app.run_middlewares(message, "send")
+        data = yield from app.run_middlewares(message, on="send")
         yield from super().send(data)

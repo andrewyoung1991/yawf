@@ -114,16 +114,18 @@ class App:
 
         return router
 
+    @staticmethod
     @asyncio.coroutine
-    def run_middlewares(self, message, *, on="recv"):
+    def run_middlewares(message, *, on="recv"):
         middlewares = yield from collect_middleware()
         routines = []
         for middleware in middlewares:
-            handler = middleware.delegate(on)
+            handler = middleware.delegate(on=on)
             if handler is not None:
                 routines.append(handler(message))
 
         if len(routines):
+            print(routines)
             results = yield from asyncio.gather(*routines)
             message = results.pop()
             assert message is not None, "A middleware returned an invalid message"

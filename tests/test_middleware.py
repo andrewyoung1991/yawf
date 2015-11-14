@@ -2,9 +2,13 @@ import asyncio
 
 import pytest
 
+from websockets import serve, connect
+
+from yawf.protocol import WebSocket
 from yawf.middlewares import Middleware
 from yawf.middlewares import utils, core
 from yawf.conf import patch_settings
+from yawf import App
 
 
 def test_invalid_middleware():
@@ -15,13 +19,14 @@ def test_invalid_middleware():
 
 def test_middleware_delegate():
     class m(Middleware):
+        @asyncio.coroutine
         def on_send(self, message):
             return message
 
     middleware = m()
     assert m._isvalid
-    assert callable(middleware.delegate(on="on_send"))
-    assert middleware.delegate(on="on_recv") is None
+    assert callable(middleware.delegate(on="send"))
+    assert middleware.delegate(on="recv") is None
 
 
 @patch_settings(middleware=["yawf.middlewares.core.JSONMiddleware"])
@@ -33,3 +38,41 @@ def test_middleware_loading():
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(testit())
+
+
+@patch_settings(middleware=["yawf.middlewares.core.JSONMiddleware"])
+def test_run_middleware():
+    run = App().run_middlewares
+    message = '{"foo": "bar"}'
+
+    @asyncio.coroutine
+    def testit(message):
+        message = yield from run(message)
+        assert message == {"foo": "bar"}
+        message = yield from run({"foo": "bar"}, on="send")
+        assert message == '{"foo": "bar"}'
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(testit(message))
+
+
+@patch_settings(middleware=["yawf.middlewares.core.JSONMiddleware"])
+def test_run_middleware_protocol():
+
+    @asyncio.coroutine
+    def handler(ws, path):
+        recvd = yield from ws.recv()
+        assert recvd == {"foo": "bar"}
+        sent = yield from ws.send(recvd)
+        assert sent == '{"foo": "bar"}'
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    server = serve(handler, "localhost", 8765, klass=WebSocket, loop=loop)
+    loop.run_until_complete(server)
+
+    client = loop.run_until_complete(connect("ws://localhost:8765"))
+    loop.run_until_complete(client.send('{"foo": "bar"}'))
+    reply = loop.run_until_complete(client.recv())
+    assert reply == '{"foo": "bar"}'
