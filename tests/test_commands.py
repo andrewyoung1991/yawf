@@ -92,7 +92,7 @@ def test_yawf_main_working_module(mock_load_settings):
 
 @mock.patch("yawf.commands.import_and_run", side_effect=[False, True])
 @mock.patch("yawf.commands.load_app_settings", return_value=("modulex", None))
-def test_yawf_main_working_module(mock_load_settings, mock_run):
+def test_yawf_main_working_module_fake(mock_load_settings, mock_run):
     call_command(argv=["test", "--app-path", "/this/fake/path/modulex.py"])
     assert mock_load_settings.called
     mock_load_settings.assert_called_with("/this/fake/path/modulex.py")

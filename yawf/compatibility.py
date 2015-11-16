@@ -1,3 +1,4 @@
+import datetime
 import sys
 import functools as ft
 from glob import iglob
@@ -26,6 +27,8 @@ yayson = json
 def _default(obj):  # pragma: no cover
     if isinstance(obj, datetime.datetime):
         return obj.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    elif isinstance(obj, bytes):
+        return obj.decode("utf-8")
 
 yayson.dumps = ft.partial(yayson.dumps, default=_default)
 

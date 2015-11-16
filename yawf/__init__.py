@@ -122,12 +122,12 @@ class App:
         for middleware in middlewares:
             handler = middleware.delegate(on=on)
             if handler is not None:
-                routines.append(handler(message))
+                routines.append(handler)
+        if on == "send":
+            routines = reversed(routines)
 
-        if len(routines):
-            print(routines)
-            results = yield from asyncio.gather(*routines)
-            message = results.pop()
+        for routine in routines:
+            message = yield from routine(message)
             assert message is not None, "A middleware returned an invalid message"
 
         return message

@@ -9,7 +9,6 @@ yeah, a websocket framework...
 .. image:: https://travis-ci.org/andrewyoung1991/yawf.svg?branch=master
     :target: https://travis-ci.org/andrewyoung1991/yawf
 
-
 .. image:: https://coveralls.io/repos/andrewyoung1991/yawf/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/andrewyoung1991/yawf?branch=master
 

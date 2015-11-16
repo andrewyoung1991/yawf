@@ -8,6 +8,8 @@ from yawf.protocol import WebSocket
 from yawf.middlewares import Middleware
 from yawf.middlewares import utils, core
 from yawf.conf import patch_settings
+from yawf.auth import JWTTokenAuth
+from yawf.compatibility import yayson
 from yawf import App
 
 
@@ -57,22 +59,55 @@ def test_run_middleware():
 
 
 @patch_settings(middleware=["yawf.middlewares.core.JSONMiddleware"])
-def test_run_middleware_protocol():
+def test_run_middleware_protocol_builder(client_server):
 
     @asyncio.coroutine
     def handler(ws, path):
         recvd = yield from ws.recv()
         assert recvd == {"foo": "bar"}
-        sent = yield from ws.send(recvd)
-        assert sent == '{"foo": "bar"}'
+        yield from ws.send(recvd)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    server = serve(handler, "localhost", 8765, klass=WebSocket, loop=loop)
-    loop.run_until_complete(server)
+    client, server = client_server(handler, loop=loop)
 
-    client = loop.run_until_complete(connect("ws://localhost:8765"))
     loop.run_until_complete(client.send('{"foo": "bar"}'))
     reply = loop.run_until_complete(client.recv())
     assert reply == '{"foo": "bar"}'
+
+    loop.run_until_complete(client.worker)
+    server.close()
+    loop.run_until_complete(server.wait_closed())
+
+
+@patch_settings(_middleware=None, middleware=[
+    "yawf.middlewares.core.JSONMiddleware",
+    "yawf.middlewares.core.JWTMiddleware"
+    ])
+def test_jwt_middleware(client_server):
+    auth = JWTTokenAuth()
+    token = auth.create(id=1, username="megaman")
+
+    @asyncio.coroutine
+    def handler(ws, path):
+        recvd = yield from ws.recv()
+        assert recvd["auth_user"] is not None
+        assert recvd["auth_user"]["id"] == 1
+        assert recvd["auth_user"]["username"] == "megaman"
+        yield from ws.send(recvd)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    client, server = client_server(handler, loop=loop)
+
+    message = yayson.dumps({"foo": "bar", "authentication": token})
+
+    loop.run_until_complete(client.send(message))
+    reply = loop.run_until_complete(client.recv())
+    assert reply == '{"foo": "bar"}'
+
+    loop.run_until_complete(client.worker)
+    server.close()
+    loop.run_until_complete(server.wait_closed())
