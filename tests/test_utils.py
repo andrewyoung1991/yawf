@@ -23,3 +23,16 @@ def test_patch_settings_raises_errors_and_resets():
         ultimate_test()
         assert err == "shreeeed"
         assert settings.get("this") == cached_this
+
+
+def test_lazy_property():
+
+    class tester:
+        @utils.lazyprop
+        def say_hi(self):
+            return "hi"
+
+    testit = tester()
+    assert hasattr(testit, "_lazy_say_hi") is False
+    assert testit.say_hi == "hi"
+    assert testit._lazy_say_hi == "hi"
