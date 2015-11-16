@@ -33,7 +33,7 @@ def load_template(path):
 
 def find_template(template_dir, template_name):
     _, ext = os.path.splitext(template_name)
-    pattern = os.path.join(template_dir, "**", "*" + ext)
+    pattern = os.path.join(template_dir, "*" + ext)
     for path in iglob(pattern):
         if path.endswith(template_name):
             return load_template(path)
