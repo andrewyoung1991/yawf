@@ -81,7 +81,7 @@ def test_run_middleware_protocol_builder(client_server):
     loop.run_until_complete(server.wait_closed())
 
 
-@patch_settings(_middleware=None, middleware=[
+@patch_settings(secret_key="okayoky", middleware=[
     "yawf.middlewares.core.JSONMiddleware",
     "yawf.middlewares.core.JWTMiddleware"
     ])

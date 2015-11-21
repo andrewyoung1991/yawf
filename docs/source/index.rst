@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    examples/echo-client-server
+   examples/routing
 
 
 

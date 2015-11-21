@@ -20,21 +20,23 @@ class RouterResolutionError(Exception):
 class Router:
     """ a router for a websocket application
     """
-    path_desc_syntax = re.compile(
-        r"(?:/[a-z]?)(?:[/a-z0-9_-]+|\{[a-z0-9_]+\})*/?"
-        )
-    path_group_syntax = re.compile(
-        r"\{([a-z0-9_]+)\}"
-        )
-    route_syntax = re.compile(
-        r"(?:\^/)(?:[a-z]?)(?:[/a-z0-9_-]+|\{[a-z0-9_]+\})*/?"
-        )
+    path_strip = re.compile(r"^[\^?/]+|[/\$?]+$")
+    path_desc_syntax = re.compile(r"[\w_]+")
+    path_group_syntax = re.compile(r"""
+        \{                              # group opening character
+            (?P<name>[a-zA-Z][\w_]+)    # group name
+            (?::(?P<pattern>.+?))?      # optional group regex
+        \}                              # group closing character
+        """, re.VERBOSE)
 
-    __slots__ = ("routes", "append_slash")
+    __slots__ = ("routes",)
 
-    def __init__(self, *, append_slash=False):
-        self.append_slash = append_slash
+    def __init__(self):
         self.routes = collections.OrderedDict()
+
+    def __str__(self):
+        return "{0}({1})".format(self.__class__.__name__, str(list(self.routes.keys())))
+    __repr__ = __str__
 
     def route(self, path_desc):
         """ wrap a handler in a route
@@ -42,12 +44,12 @@ class Router:
         def wrap(handler):
             if issubclass(handler, BaseHandler):
                 handler = handler.as_handler()
-            cleaned = self.clean_path(path_desc)
-            regex = self._make_regex(cleaned)
-            self.routes[cleaned] = regex, handler
+            regex = self._make_regex(self.clean_path(path_desc))
+            self.routes[path_desc] = regex, handler
             return handler
         return wrap
 
+    @ft.lru_cache(maxsize=100)
     def resolve(self, path):
         """ resolve the path, returning the keywords dict and its handler.
         """
@@ -65,40 +67,39 @@ class Router:
         desc will look like this '^/...pathstuff.../?$', the trailing slash is
         optional.
         """
-        self._check(path)
-        if not path.startswith("^"):
-            path = "^{}".format(path)
-        if not path.endswith("$"):
-            needs = "$"
-            if self.append_slash and not path.endswith("/"):
-                needs = "/" + needs
-            path = "{0}{1}".format(path, needs)
-        return path
+        # strip starting and trailing /'s and start and end regex characters
+        stripped = self.path_strip.sub("", path)
+        parts = stripped.split("/")
+        return parts
 
-    def _check(self, path_desc):
-        """ enforce the following rules:
-        1) a path description may not have a name segment as its first part.
-        2) a path description must start with an alphabetical character.
-        3) a path description must fully match the compiled pattern rule.
-        """
-        if re.match(r"/\{\w+\}.*", path_desc):
-            raise RouterSyntaxError("the path description {0} has a named"
-                " segmant in its first position.")
-        elif re.match(r"/[0-9].*", path_desc):
-            raise RouterSyntaxError("the path description {0} has a number"
-                " in its first position.")
-        style = self.path_desc_syntax
-        works = style.match(path_desc)
-        if works is None or len(works.group()) != len(path_desc):
-            raise RouterSyntaxError("the path description {0} did not match"
-                " the route syntax style {1}".format(path_desc, style))
+    def _check(self, parts):
+        if self.path_group_syntax.match(parts[0]):
+            raise RouterSyntaxError("the path description has a dynamic"
+                " segmant in first position {}".format(parts[0]))
 
-    def _make_regex(self, path_desc):
+        for part in parts:
+            match = self.path_group_syntax.match(part)
+            if match is None:
+                match = self.path_desc_syntax.match(part)
+
+            if match is None:
+                raise RouterSyntaxError("invalid path description.")
+
+    def _make_regex(self, path_parts):
         """ compile the path description into a regular expression.
         """
-        syntax = self.path_group_syntax
-        regex = syntax.sub(
-            r"(?P<\1>[a-z0-9][a-z0-9_-]*)",
-            path_desc
-            )
+        if len(path_parts) == 1 and not any(path_parts):
+            return re.compile("^/$")
+
+        self._check(path_parts)
+        parts = []
+        for part in path_parts:
+            match = self.path_group_syntax.match(part)
+            if match is not None:
+                groups = match.groupdict()
+                groups["pattern"] = groups["pattern"] or "[\w_]+"
+                part = "(?P<{name}>{pattern})".format(**groups)
+            parts.append(part)
+
+        regex = "^/{}/?$".format("/".join(parts))
         return re.compile(regex)
